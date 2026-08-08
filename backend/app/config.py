@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     FACES_DIR: str = "faces"
 
     # CORS
-    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,https://*.vercel.app,*"
 
     class Config:
         env_file = ".env"
