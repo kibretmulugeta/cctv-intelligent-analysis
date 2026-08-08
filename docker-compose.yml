@@ -10,12 +10,39 @@ services:
     environment:
       - APP_NAME=CCTV Intelligent Analysis
       - DATABASE_URL=sqlite+aiosqlite:///./cctv.db
+      - REDIS_URL=redis://redis:6379/0
       - YOLO_MODEL=yolo11n.pt
       - DEVICE=cpu
     volumes:
       - ./backend/uploads:/app/uploads
       - ./backend/outputs:/app/outputs
       - ./backend/faces:/app/faces
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - YOLO_MODEL=yolo11n.pt
+      - DEVICE=cpu
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/outputs:/app/outputs
+      - ./backend/faces:/app/faces
+    depends_on:
+      - redis
+      - backend
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
     restart: unless-stopped
 
   frontend:
@@ -26,4 +53,24 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
     restart: unless-stopped

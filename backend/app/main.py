@@ -113,6 +113,15 @@ upload_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(upload_dir)), name="uploads")
 
 
+@app.get("/metrics", tags=["mlops"])
+async def metrics():
+    """Prometheus MLOps metrics scraping endpoint."""
+    from app.metrics import get_prometheus_metrics
+    from fastapi import Response
+    content, content_type = get_prometheus_metrics()
+    return Response(content=content, media_type=content_type)
+
+
 @app.get("/")
 async def root():
     return {
@@ -120,6 +129,7 @@ async def root():
         "version": settings.APP_VERSION,
         "docs": "/docs",
         "health": "/api/health",
+        "metrics": "/metrics",
         "privacy_notice": (
             "Face recognition is intended only for authorized, consent-based demonstrations. "
             "Do not use biometric identification without appropriate authorization, consent, "
