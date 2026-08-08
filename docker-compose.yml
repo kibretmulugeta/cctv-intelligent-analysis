@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=CCTV Intelligent Analysis
+      - DATABASE_URL=sqlite+aiosqlite:///./cctv.db
+      - YOLO_MODEL=yolo11n.pt
+      - DEVICE=cpu
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/outputs:/app/outputs
+      - ./backend/faces:/app/faces
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped

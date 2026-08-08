@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+*.pyo
+
+# Environment
+.env
+!.env.example
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# AI Models (large files - download on first run)
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.bin
+models/
+
+# Uploads and outputs (local data)
+uploads/
+outputs/
+faces/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node (frontend)
+node_modules/
+dist/
+.next/
+.nuxt/
+build/
+
+# Docker
+.docker/
+
+# Tests
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
