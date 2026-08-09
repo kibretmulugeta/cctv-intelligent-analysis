@@ -18,7 +18,7 @@ numpy==1.26.4
 Pillow==11.0.0
 
 # Face Recognition & ONNX
-onnx==1.17.0
+onnx==1.22.0
 onnxruntime==1.20.1
 
 # MLOps & Observability Metrics
