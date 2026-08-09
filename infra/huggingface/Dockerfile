@@ -2,6 +2,7 @@
 FROM python:3.11-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
@@ -14,12 +15,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy backend requirements & install
-COPY backend/requirements.txt .
+# Install CPU-only PyTorch first (saves ~1.5GB vs full torch)
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Copy requirements & install remaining deps
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application source code
-COPY backend/ .
+# Copy application source code
+COPY app/ ./app/
+COPY yolo11n.pt .
+
+# Create runtime directories
+RUN mkdir -p uploads outputs faces
 
 # Hugging Face Spaces requires exposing port 7860
 EXPOSE 7860

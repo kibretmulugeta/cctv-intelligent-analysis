@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./cctv.db"
 
+    # Redis / Celery
+    REDIS_URL: str = "redis://localhost:6379/0"
+
     # YOLO Model
     YOLO_MODEL: str = "yolo11n.pt"
     CONFIDENCE_THRESHOLD: float = 0.45

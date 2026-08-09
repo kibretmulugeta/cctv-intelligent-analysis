@@ -50,6 +50,7 @@ logs/
 .DS_Store
 Thumbs.db
 desktop.ini
+cloudflared.exe
 
 # Node (frontend)
 node_modules/
