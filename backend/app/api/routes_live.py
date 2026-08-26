@@ -55,13 +55,17 @@ def _auto_register_sync(embedding, face_recognizer):
 
 def live_webcam_generator(camera_id: int = 0) -> Generator[bytes, None, None]:
     """
-    Generator that opens laptop webcam (VideoCapture(0)), runs YOLO + Face detection,
+    Generator that opens laptop webcam, runs YOLO + Face detection,
     annotates bounding boxes in real time, auto-registers unknown people, and yields MJPEG frame bytes.
     """
     global _is_camera_active
     import cv2
 
-    cap = cv2.VideoCapture(camera_id)
+    # Try DirectShow first on Windows, fall back to default driver
+    cap = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+    if not cap.isOpened():
+        cap = cv2.VideoCapture(camera_id)
+
     if not cap.isOpened():
         logger.error(f"Cannot open webcam camera index: {camera_id}")
         return
@@ -150,20 +154,11 @@ def live_webcam_generator(camera_id: int = 0) -> Generator[bytes, None, None]:
 @router.get("/stream")
 async def live_stream(camera_id: int = Query(default=0)):
     """Stream live laptop webcam feed with YOLO & Face recognition overlays."""
-    try:
-        import cv2
-        test_cap = cv2.VideoCapture(camera_id)
-        if not test_cap.isOpened():
-            test_cap.release()
-            raise HTTPException(400, f"Cannot open webcam at index {camera_id}. Make sure camera permissions are enabled.")
-        test_cap.release()
-    except Exception as e:
-        raise HTTPException(400, f"Webcam error: {str(e)}")
-
     return StreamingResponse(
         live_webcam_generator(camera_id),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
+
 
 
 @router.post("/capture-admin")
