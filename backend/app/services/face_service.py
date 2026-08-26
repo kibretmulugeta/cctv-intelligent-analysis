@@ -83,6 +83,48 @@ async def enroll_face(
     return {"success": True, "face_id": face_record.id, "name": name}
 
 
+async def auto_register_person(
+    db: AsyncSession,
+    embedding: np.ndarray,
+    face_recognizer: FaceRecognizer,
+) -> Dict[str, Any]:
+    """
+    Automatically register a newly detected unknown face with a sequential Person ID (e.g. Person 1, Person 2).
+    """
+    # Count how many auto-registered 'Person ' identities currently exist
+    result = await db.execute(select(Face).where(Face.name.like("Person %")))
+    existing_persons = result.scalars().all()
+    
+    existing_numbers = []
+    for p in existing_persons:
+        parts = p.name.split(" ")
+        if len(parts) >= 2 and parts[1].isdigit():
+            existing_numbers.append(int(parts[1]))
+            
+    next_num = max(existing_numbers, default=0) + 1
+    person_name = f"Person {next_num}"
+
+    face_record = Face(name=person_name, description="Auto-registered during live camera stream", consent_given=True)
+    db.add(face_record)
+    await db.flush()
+
+    embedding_bytes = face_recognizer.embedding_to_bytes(embedding)
+    emb_record = FaceEmbedding(
+        face_id=face_record.id,
+        embedding_blob=embedding_bytes,
+        embedding_size=len(embedding),
+        image_filename="live_auto_register.jpg",
+    )
+    db.add(emb_record)
+    face_record.image_count = 1
+
+    await db.commit()
+    await db.refresh(face_record)
+
+    logger.info(f"Auto-registered new identity: {person_name} (id: {face_record.id})")
+    return {"face_id": face_record.id, "name": person_name, "embedding_bytes": embedding_bytes}
+
+
 async def get_enrolled_faces_for_recognizer(db: AsyncSession) -> List[Dict[str, Any]]:
     """Load all enrolled face embeddings for the recognizer."""
     result = await db.execute(
@@ -103,3 +145,4 @@ async def get_enrolled_faces_for_recognizer(db: AsyncSession) -> List[Dict[str, 
         })
 
     return output
+

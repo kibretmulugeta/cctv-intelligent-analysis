@@ -169,20 +169,30 @@ export default function FaceRecognition() {
                   </tr>
                 </thead>
                 <tbody>
-                  {faces.map((f) => (
-                    <tr key={f.id}>
-                      <td style={{ fontWeight: 600 }}>{f.name}</td>
-                      <td>{f.image_count} vectors</td>
-                      <td>
-                        <span className="badge badge-info">VERIFIED CONSENT</span>
-                      </td>
-                      <td>
-                        <button className="btn btn-danger" style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }} onClick={() => handleDelete(f.id, f.name)}>
-                          <Trash2 size={14} /> Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {faces.map((f) => {
+                    const isAdmin = f.name.toLowerCase() === "admin";
+                    return (
+                      <tr key={f.id} style={{ background: isAdmin ? "rgba(16, 185, 129, 0.08)" : "transparent" }}>
+                        <td style={{ fontWeight: 600, color: isAdmin ? "#10b981" : "#fff" }}>
+                          {isAdmin ? "★ Admin" : f.name}
+                        </td>
+                        <td>{f.image_count || 1} vectors</td>
+                        <td>
+                          {isAdmin ? (
+                            <span className="badge badge-success">ADMIN USER</span>
+                          ) : (
+                            <span className="badge badge-info">AUTO-REGISTERED</span>
+                          )}
+                        </td>
+                        <td>
+                          <button className="btn btn-danger" style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }} onClick={() => handleDelete(f.id, f.name)}>
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
                 </tbody>
               </table>
             )}

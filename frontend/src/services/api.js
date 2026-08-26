@@ -38,12 +38,23 @@ export const facesApi = {
     api.post("/api/faces/enroll", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+  enrollAdmin: (formData) =>
+    api.post("/api/faces/enroll-admin", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
   deleteFace: (id) => api.delete(`/api/faces/${id}`),
   recognizeFace: (formData) =>
     api.post("/api/faces/recognize", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
 };
+
+export const liveApi = {
+  startStreamUrl: (cameraId = 0) => `${API_BASE_URL}/api/live/stream?camera_id=${cameraId}`,
+  captureAdmin: (cameraId = 0) => api.post(`/api/live/capture-admin?camera_id=${cameraId}`),
+  stopStream: () => api.post("/api/live/stop"),
+};
+
 
 export const eventsApi = {
   listEvents: (params) => api.get("/api/events", { params }),

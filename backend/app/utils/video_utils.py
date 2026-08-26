@@ -149,17 +149,28 @@ def draw_detections(
             x2 = int(bbox[2] * w)
             y2 = int(bbox[3] * h)
             name = face.get("name", "Unknown")
-            conf = face.get("confidence", 0)
+            conf = face.get("recognition_confidence") or face.get("confidence", 0)
 
-            face_color = (0, 255, 255) if name != "Unknown" else (0, 100, 255)
+            if name.lower() == "admin":
+                face_color = (0, 255, 0)  # Bright Green for Admin
+                label = f"★ ADMIN ★ ({conf:.2f})"
+            elif name != "Unknown":
+                face_color = (255, 200, 0)  # Cyan/Gold for registered Persons
+                label = f"FACE: {name} ({conf:.2f})"
+            else:
+                face_color = (0, 100, 255)  # Orange for Unknown
+                label = f"FACE: Detecting..."
+
+            # Draw outer rectangle and filled label background
             cv2.rectangle(output, (x1, y1), (x2, y2), face_color, 2)
-
-            label = f"FACE: {name} {conf:.2f}"
-            label_y = max(y1 - 8, 12)
-            cv2.putText(output, label, (x1, label_y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, face_color, 1)
+            label_y = max(y1 - 10, 15)
+            (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
+            cv2.rectangle(output, (x1, label_y - lh - 4), (x1 + lw + 6, label_y + 4), face_color, -1)
+            cv2.putText(output, label, (x1 + 3, label_y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 2)
 
     return output
+
 
 
 def encode_frame_to_jpeg(frame: np.ndarray, quality: int = 85) -> bytes:

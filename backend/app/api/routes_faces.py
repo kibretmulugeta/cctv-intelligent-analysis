@@ -64,6 +64,45 @@ async def enroll_face_endpoint(
     return result
 
 
+@router.post("/enroll-admin")
+async def enroll_admin_endpoint(
+    image: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Enroll or update the system Admin identity from an uploaded photo or camera frame.
+    """
+    if not image.content_type or not image.content_type.startswith("image/"):
+        raise HTTPException(400, "File must be an image (JPEG, PNG, etc.)")
+
+    content = await image.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(413, "Image too large. Maximum 10MB.")
+
+    face_detector = get_face_detector()
+    face_recognizer = get_face_recognizer()
+
+    result = await enroll_face(
+        db=db,
+        name="Admin",
+        image_data=content,
+        image_filename=image.filename or "admin.jpg",
+        face_detector=face_detector,
+        face_recognizer=face_recognizer,
+        description="System Administrator Identity",
+    )
+
+    if not result["success"]:
+        raise HTTPException(400, result["error"])
+
+    # Reload enrolled faces in recognizer
+    enrolled = await get_enrolled_faces_for_recognizer(db)
+    face_recognizer.load_enrolled(enrolled)
+
+    return {"success": True, "message": "Admin identity enrolled successfully", "face_id": result["face_id"]}
+
+
+
 @router.delete("/{face_id}")
 async def delete_face(face_id: str, db: AsyncSession = Depends(get_db)):
     """Delete an enrolled face identity and all its embeddings."""
